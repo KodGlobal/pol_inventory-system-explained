@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Inv_ItemPosition : MonoBehaviour
 {
-    //Selecting the body part we want the object to appear at
+    //Wybieranie części ciała, na której ma się pojawić obiekt.
     public enum ItemPos
     {
         Head,
