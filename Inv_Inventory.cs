@@ -5,33 +5,33 @@ using UnityEngine.UI;
 
 public class Inv_Inventory : MonoBehaviour
 {       
-    // A list with all the inventory buttons
+    // Lista wszystkich przycisków inwentarza
     [SerializeField] List<Button> buttons = new List<Button>();   
-    // All the objects from the Resources folder
+    // Wszystkie obiekty z folderu Zasoby
     [SerializeField] List<GameObject> resourceItems = new List<GameObject>();
     [SerializeField] GameObject buttonsPath;
-    // The names of objects that we collected
+    // Nazwy obiektów, które zebraliśmy
     [SerializeField] List<string> inventoryItems = new List<string>();
-    // The object that is currently equipped
+    // Obiekt, który jest aktualnie wyposażony
     GameObject itemInArm;
-    // The spot at which the object is going to spawn spawn
+    // Miejsce, w którym obiekt ma się pojawić
     [SerializeField] Transform itemPoint;
     [SerializeField] Transform[] itemPositions;
-    // A text field for inventory warning messages (Text)
+    // Pole tekstowe dla ostrzeżeń inwentarza (Tekst)
     [SerializeField] TMP_Text warning;
-    // The list of items collected by the player
+    // Lista przedmiotów zebranych przez gracza
     [SerializeField] List<GameObject> playerItems = new List<GameObject>();
     GameObject itemPosition;
 
 
     private void Start()
     {
-        // Loading all the inventory items located in the Resources folder
+        // Wczytywanie wszystkich przedmiotów inwentarza znajdujących się w folderze Zasoby
         GameObject[] objArr = Resources.LoadAll<GameObject>("Items");
         
-        // Filling out the list of possible inventory items
+        // Wypełnianie listy możliwych przedmiotów inwentarza
         resourceItems.AddRange(objArr);
-        // Going through all the inventory buttons and storing them in the list
+        // Przechodzenie przez wszystkie przyciski inwentarza i przechowywanie ich na liście
         foreach(Transform child in buttonsPath.transform)
         {
             buttons.Add(child.GetComponent<Button>());
@@ -39,7 +39,7 @@ public class Inv_Inventory : MonoBehaviour
     }
     private void Update()
     {
-        // Enabling/disabling the mouse cursor whenever the player presses Q
+        // Włączanie/wyłączanie kursora myszy, gdy gracz naciska Q
         if (Input.GetKeyDown(KeyCode.Q))
         {
             if (Cursor.lockState == CursorLockMode.Locked)
@@ -55,64 +55,65 @@ public class Inv_Inventory : MonoBehaviour
 
     public void AddItem(Sprite img, string itemName, GameObject obj)
     {        
-        // If the inventory is full, we output a warning message and abort the method
+        // Jeśli inwentarz jest pełny, wyświetlamy komunikat ostrzegawczy i przerywamy metodę
         if (inventoryItems.Count >= buttons.Count)
         {
             warning.text = "Full Inventory!";
             Invoke("WarningUpdate", 1f);
             return;
         }
-        // If the player already has a copy of the item, we output a warning message and abort the method
+        // Jeśli gracz już ma kopię przedmiotu, wyświetlamy komunikat ostrzegawczy i przerywamy metodę
         if (inventoryItems.Contains(itemName))
         {
             warning.text = "You already have " + itemName;
             Invoke("WarningUpdate", 1f);
             return;
         }
-        // Adding the item's name to the inventory
+        // Dodawanie nazwy przedmiotu do inwentarza
         inventoryItems.Add(itemName);
-        // Getting the next free button and its Image component
+        // Pobieranie następnego wolnego przycisku i jego komponentu Obrazu
         var buttonImage = buttons[inventoryItems.Count - 1].GetComponent<Image>();
-        // Setting the button's image to the image of the item we collected
+        // Ustawianie obrazu przycisku na obrazek zebranego przedmiotu
         buttonImage.sprite = img;
-        // Destroying the item we collected
+        // Niszczenie zebranego przedmiotu
         Destroy(obj);
     }
-    // A method that erases all the warning messages
+    // Metoda usuwająca wszystkie komunikaty ostrzegawcze
     void WarningUpdate()
     {
         warning.text = "";
     }
-    // This method is called whenever a button is pressed
+    // Ta metoda jest wywoływana, gdy naciśnięty zostanie przycisk
     public void UseItem(int itemPos)
     {           
-        // If we pressed a button with no item attached to it, we abort the function
+        // Jeśli nacisnęliśmy przycisk, do którego nie jest dołączony żaden przedmiot, przerywamy funkcję
         if (inventoryItems.Count <= itemPos) return;
-        // Storing the name of the object attached to this button in a variable
+        // Przechowywanie nazwy obiektu dołączonego do tego przycisku w zmiennej
         string item = inventoryItems[itemPos];
-        // Calling the method that equips the item from the inventory, and passing the name of the item as an inventory
+        // Wywoływanie metody, która wyposaża przedmiot z inwentarza, przekazując nazwę przedmiotu jako inwentarz
         GetItemFromInventory(item);
     }
-    // This method equips the item. It is called from the UseItem method 
+    // Ta metoda wyposaża przedmiot. Jest ona wywoływana z metody UzyjPrzedmiot
     public void GetItemFromInventory(string itemName)
     {
-        // Searching for the object with the specified name in the list of all objects
+        // Wyszukiwanie obiektu o określonej nazwie na liście wszystkich obiektów
         var resourceItem = resourceItems.Find(x => x.name == itemName);
-        // If the object with such name does not exist in the resource folder, we abort the function
+        // Jeśli obiekt o takiej nazwie nie istnieje w folderze zasobów, przerywamy funkcję
+
         if (resourceItem == null) return;
 
-        // Looking for the object with the specified name in the list of player objects
+        // Szukanie obiektu o określonej nazwie na liście obiektów gracza
         var putFind = playerItems.Find(x => x.name == itemName);
 
-        // If such an item does not exist, then
+        // Jeśli taki przedmiot nie istnieje, to
         if (putFind == null)
         {
-            // If the player already has an item equipped, we disable it
+            // Jeśli gracz ma już zaopatrzony przedmiot, wyłączamy go
             if (itemInArm != null)
             {
                 itemInArm.SetActive(false);
             }
-            // Checking out which body part the object should be attached to
+                // Sprawdzanie, do której części ciała powinien być dołączony obiekt
             var pos = resourceItem.GetComponent<Inv_ItemPosition>().positon;
             if (pos == Inv_ItemPosition.ItemPos.Head)
             {
@@ -129,25 +130,25 @@ public class Inv_Inventory : MonoBehaviour
                 itemPoint.position = itemPositions[2].position;
                 itemPosition = itemPositions[2].gameObject;
             }
-            // Spawning the object at the previously defined point
+            // Tworzenie obiektu w wcześniej zdefiniowanym punkcie
             var newItem = Instantiate(resourceItem, itemPoint);
-            // Moving this object to the player's Hierarchy 
+            // Przenoszenie tego obiektu do hierarchii gracza
             newItem.transform.parent = itemPosition.transform;
-            // Naming the new object
+            // Nadawanie nowemu obiektowi nazwy
             newItem.name = itemName;
-            // Adding the object to the list of objects in player's inventory
+            // Dodawanie obiektu do listy obiektów w ekwipunku gracza
             playerItems.Add(newItem);
-            //Telling unity that the itemInArm inventory equals the newly-equipped itemТ (in other words, we remember the item that is currently equipped)
+                // Informowanie Unity, że ekwipunek itemInArm równa się nowo wyposażonemu przedmiotowi (innymi słowy, pamiętamy przedmiot, który jest obecnie wyposażony)
             itemInArm = newItem;
         }
-        // If this item already exists in the scene, then
+        // Jeśli ten przedmiot już istnieje na scenie, to
         else
         {
-            // If this object is the object that is already equipped, we simply change its state
+                // Jeśli ten obiekt to obiekt, który jest już wyposażony, po prostu zmieniamy jego stan
             {
                 putFind.SetActive(!putFind.activeSelf);
             }
-            // If this is another object, we simply disabling the currently equipped item and enable the new one
+                // Jeśli to inny obiekt, po prostu wyłączamy obecnie wyposażony przedmiot i włączamy nowy
             else
             {
                 itemInArm.SetActive(false);
